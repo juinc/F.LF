@@ -118,6 +118,10 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 						//other combo is not cleared
 					}
 				}
+
+				if ($.id_update('ex_transform')) {
+					$.trans.frame(300, 15);
+				}
 			break;
 			case 'transit':
 				//dynamics: position, friction, gravity
@@ -660,10 +664,12 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				{
 					$.catching.caught_release();
 					$.trans.frame(999,15);
-        }
-        if ($.id === 50 && $.frame.D.pic === 104 && $.frame.D.next === 999 && $.con.state.att) {
-          $.trans.frame(260,15);
-        }
+				}
+	
+				if ($.id_update('state9_con_air_push'))
+				{
+					$.trans.frame(260,15);
+				}
 			break;
 
 			case 'combo':
@@ -950,7 +956,6 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 		'15':function(event,K) //stop_running, crouch, crouch2, dash_attack, light_weapon_thw, heavy_weapon_thw, heavy_stop_run, sky_lgt_wp_thw
 		{	var $=this;
 			switch (event) {
-
 			case 'frame':
 				switch( $.frame.N)
 				{
@@ -1166,6 +1171,15 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 					return 1;
 				}
 			break;
+			case 'ex_transform':
+				if (($.health.hp <= $.health.hp_full / 3) &&
+					$.con.state.def &&
+					$.con.state.jump &&
+					$.con.state.att)
+				{
+					return 1
+				}
+			break;
 			}
 		},
 		'11': function(event) //davis
@@ -1192,6 +1206,19 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 					//to fix many_punch
 					case 275: case 278: case 279:
 						return 1; //disable pre update of force
+				}
+			break;
+			}
+		},
+		'50': function(event)
+		{
+			var $=this;
+			switch (event)
+			{
+			case 'state9_con_air_push':
+				if ($.frame.N === 263 && $.con.state.att)
+				{
+					return 1;
 				}
 			break;
 			}
