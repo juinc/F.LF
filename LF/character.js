@@ -118,10 +118,6 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 						//other combo is not cleared
 					}
 				}
-
-				if ($.id_update('ex_transform')) {
-					$.trans.frame(300, 15);
-				}
 			break;
 			case 'transit':
 				//dynamics: position, friction, gravity
@@ -665,10 +661,11 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 					$.catching.caught_release();
 					$.trans.frame(999,15);
 				}
-	
-				if ($.id_update('state9_con_air_push'))
+				var tag = Global.combo_tag[K];
+				if( !$.id_update('state9_post_combo'))
 				{
-					$.trans.frame(260,15);
+					$.trans.frame($.frame.D[tag], 11);
+					return 1;
 				}
 			break;
 
@@ -1124,7 +1121,56 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				$.clones[i].effect.timeout=99;
 				$.clones[i].effect.disappear = true
 			}
-    },
+		},
+		'9995': function(event, K)
+		{
+			var $=this;
+			switch (event) {
+				case 'frame':
+					var uid = $.uid;
+					var ps_x = $.ps.x;
+					var ps_y = $.ps.y;
+					var ps_z = $.ps.z;
+					var hp = $.health.hp
+					var char_config =
+					{
+						match: $.match,
+						controller: $.con,
+						team: $.team
+					}
+					var player_obj = util.select_from($.match.data.object,{id:50});
+					var pdata = player_obj.data;
+					$.destroy();
+					var char = new character(char_config, pdata, 50);
+					char.set_pos( ps_x, ps_y, ps_z);
+					$.scene.add(char);
+					$.match.character[uid] = char;
+					char.health.hp = hp + 100;
+				break;
+		}},
+		'9996': function(event, K)
+		{
+			var $=this;
+			switch (event) {
+			case 'frame':
+				$.match.create_object({
+					kind: 1, x: 5, y: 3, action: 399, dvx: 10, dvy: -5, oid: 217, facing: 0
+				}, $);
+				$.match.create_object({
+					kind: 1, x: 5, y: 5, action: 399, dvx: 7, dvy: -5, oid: 217, facing: 1
+				}, $);
+				$.match.create_object({
+					kind: 1, x: 3, y: 10, action: 399, dvx: 10, dvy: -10, oid: 217, facing: 0
+				}, $);
+				$.match.create_object({
+					kind: 1, x: -15, y: 15, action: 399, dvx: 8, dvy: -8, oid: 217, facing: 1
+				}, $);
+				$.match.create_object({
+					kind: 1, x: 0, y: 0, action: 399, dvx: 0, dvy: -5, oid: 218, facing: 0
+				}, $);
+				$.effect.super = true;
+			break;
+		}}
 	};
 
 	var idupdates = //nasty fix (es)
@@ -1168,15 +1214,9 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			case 'generic_combo':
 				if( tag==='hit_ja') //FIX ME: disable transform
 				{
-					return 1;
-				}
-			break;
-			case 'ex_transform':
-				if (($.health.hp <= $.health.hp_full / 3) &&
-					$.con.state.def &&
-					$.con.state.jump &&
-					$.con.state.att)
-				{
+					if ($.health.hp <= ($.health.hp_full / 3)) {
+						$.trans.frame(300);
+					}
 					return 1
 				}
 			break;
@@ -1215,9 +1255,10 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			var $=this;
 			switch (event)
 			{
-			case 'state9_con_air_push':
+			case 'state9_post_combo':
 				if ($.frame.N === 263 && $.con.state.att)
 				{
+					$.trans.frame(260, 15);
 					return 1;
 				}
 			break;
@@ -1492,7 +1533,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				return false;
 
 			if( $.state()===7 && //defend
-			    (attps.x > $.ps.x)===($.ps.dir==='right')) //attacked in front
+				(attps.x > $.ps.x)===($.ps.dir==='right')) //attacked in front
 			{
 				if( ITR.injury)	inj += GC.defend.injury.factor * ITR.injury;
 				if( ITR.bdefend) $.health.bdefend += ITR.bdefend;
