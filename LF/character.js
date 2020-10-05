@@ -247,7 +247,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 						}
 					}
 					//
-					var vol=$.mech.volume(Futil.make_array($.data.frame[72].itr || $.data.frame[73].itr)[0]); //super punch frames
+					var vol=$.mech.volume(Futil.make_array($.data.frame[70].wpoint || $.data.frame[72].itr || $.data.frame[73].itr)[0]); //super punch frames
 					var hit= $.scene.query(vol, $, {tag:'itr:6', not_team:$.team});
 					for( var t in hit)
 					{	//if someone is in my hitting scoope who has itr kind:6
@@ -660,7 +660,10 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				{
 					$.catching.caught_release();
 					$.trans.frame(999,15);
-				}
+        }
+        if ($.id === 50 && $.frame.D.pic === 104 && $.frame.D.next === 999 && $.con.state.att) {
+          $.trans.frame(260,15);
+        }
 			break;
 
 			case 'combo':
@@ -1116,7 +1119,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				$.clones[i].effect.timeout=99;
 				$.clones[i].effect.disappear = true
 			}
-		}
+    },
 	};
 
 	var idupdates = //nasty fix (es)
