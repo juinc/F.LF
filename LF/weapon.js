@@ -366,7 +366,7 @@ function weapon(type)
 			if( wpoint.dvx) $.ps.vx = att.dirh() * wpoint.dvx;
 			if( wpoint.dvz) $.ps.vz = att.dirv() * wpoint.dvz;
 			if( wpoint.dvy) $.ps.vy = wpoint.dvy;
-			if( $.ps.vx || $.ps.vy || $.ps.vz)
+			if( $.ps.vx || $.ps.vz)
 			{	//gaining velocity; flying away
 				var imx,imy; //impulse
 				if( $.light)
