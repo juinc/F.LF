@@ -1729,7 +1729,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			var ITR=ITR_LIST[i]; //the itr tag in data
 			//first check for what I have got into intersect with
 			var vol=$.mech.volume(ITR);
-			vol.zwidth = 0;
+			// vol.zwidth = 0;
 			var hit= $.scene.query(vol, $, {tag:'body'});
 			// console.log(vol)
 			// console.log(hit)
@@ -1807,7 +1807,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			var ITR=ITR_LIST[i]; //the itr tag in data
 			//first check for what I have got into intersect with
 			var vol=$.mech.volume(ITR);
-			vol.zwidth = 0;
+			// vol.zwidth = 0;
 			var hit= $.scene.query(vol, $, {tag:'body'});
 
 			// console.log("ITR: ", ITR)
