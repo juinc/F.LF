@@ -291,20 +291,17 @@ Global)
 				};
 
 				if (OBJ.type == "character") { // Rudolf clone
-					var num_of_clone = 2
-					for (i=0; i<num_of_clone; i++) {
-						config.controller = new AI.controller();
-						var AIcontroller = util.select_from($.data.AI,{id: 2}).data; // challenger
-						var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
-						obj.health.hp = 10
-						obj.cloned = true // Only for cloned character
-						obj.effect = Object.assign({}, T.parent.effect) // Use deep clone
-						obj.init(T);
-						var uid = $.scene.add(obj);
-						$[obj.type][uid] = obj;
-						$.AIscript[uid] = new AIcontroller(obj,$, config.controller);
-						T.parent.clones[uid] = obj
-					}
+					config.controller = new AI.controller();
+					var AIcontroller = util.select_from($.data.AI,{id: 3}).data; // dumbass
+					var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
+					obj.health.hp = 10
+					obj.cloned = true // Only for cloned character
+					obj.effect = Object.assign({}, T.parent.effect) // Use deep clone
+					obj.init(T);
+					var uid = $.scene.add(obj);
+					$[obj.type][uid] = obj;
+					$.AIscript[uid] = new AIcontroller(obj,$, config.controller);
+					T.parent.clones[uid] = obj
 				} else {
 					var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
 					obj.init(T);
