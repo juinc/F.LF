@@ -156,7 +156,9 @@ sprite.prototype.switch_lr = function(dir) //switch to `dir`
 \*/
 sprite.prototype.set_x_y = function(x,y)
 {
-	this.sp.set_x_y(x,y);
+	if (this.sp) {
+		this.sp.set_x_y(x,y);
+	}
 }
 /*\
  * sprite.set_z
@@ -165,7 +167,9 @@ sprite.prototype.set_x_y = function(x,y)
 \*/
 sprite.prototype.set_z = function(Z)
 {
-	this.sp.set_z(Z);
+	if (this.sp) {
+		this.sp.set_z(Z);
+	}
 }
 /*\
  * sprite.show

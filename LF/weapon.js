@@ -211,7 +211,7 @@ function weapon(type)
 			if( ITR[j].kind===0) //kind 0
 			{
 				var vol=$.mech.volume(ITR[j]);
-				vol.zwidth = 0;
+				// vol.zwidth = 0;
 				var hit= $.scene.query(vol, $, {tag:'body', not_team:$.team});
 				for( var k in hit)
 				{	//for each being hit
@@ -366,7 +366,7 @@ function weapon(type)
 			if( wpoint.dvx) $.ps.vx = att.dirh() * wpoint.dvx;
 			if( wpoint.dvz) $.ps.vz = att.dirv() * wpoint.dvz;
 			if( wpoint.dvy) $.ps.vy = wpoint.dvy;
-			if( $.ps.vx || $.ps.vy || $.ps.vz)
+			if( $.ps.vx || $.ps.vz)
 			{	//gaining velocity; flying away
 				var imx,imy; //impulse
 				if( $.light)
@@ -416,7 +416,7 @@ function weapon(type)
 						if( ITR[j].kind===5) //kind 5 only
 						{
 							var vol=$.mech.volume(ITR[j]);
-							vol.zwidth = 0;
+							// vol.zwidth = 0;
 							var hit= $.scene.query(vol, [$,att], {tag:'body', not_team:$.team});
 							for( var k in hit)
 							{	//for each being hit
