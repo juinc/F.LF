@@ -318,10 +318,16 @@ Global)
 		case 'destroy_object':
 			var obj = T.obj;
 			obj.destroy();
-			var uid = $.scene.remove(obj);
-			delete $[obj.type][uid];
-			if (obj.type == "character") // Rudolf clone
+
+			if (obj.type == "character") { // Rudolf clone
+				var uid = obj.rudolf_state.uid
+				$.scene.remove(obj);
+				delete $[obj.type][uid];
 				delete $.AIscript[uid];
+			} else {
+				var uid = $.scene.remove(obj);
+				delete $[obj.type][uid];
+			}
 		break;
 		}
 	}
@@ -523,8 +529,13 @@ Global)
 					var ch = $.character[$.panel[i].uid];
 					var alive = ch.health.hp>0;
 					var win = teams[ch.team];
+
+					// Read rudolf_state to check the character is Rudolf (oid: 5)
+					var is_rudolf = !!$.character[$.panel[i].uid].rudolf_state.uid
+					var path = is_rudolf ? util.select_from($.data.object, { id: 5 }).data.bmp.small : ch.data.bmp.small
+
 					//[ Icon, Name, Kill, Attack, HP Lost, MP Usage, Picking, Status ]
-					info.push([ch.data.bmp.small, $.panel[i].name, ch.stat.kill, ch.stat.attack, ch.health.hp_lost, ch.health.mp_usage, ch.stat.picking, (win?'Win':'Lose')+' ('+(alive?'Alive':'Dead')+')']);
+					info.push([path, $.panel[i].name, ch.stat.kill, ch.stat.attack, ch.health.hp_lost, ch.health.mp_usage, ch.stat.picking, (win?'Win':'Lose')+' ('+(alive?'Alive':'Dead')+')']);
 				}
 			}
 			$.manager.summary.set_info(info);

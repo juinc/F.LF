@@ -144,6 +144,8 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 
 						// Transform clones
 						var clones = util.select_from($.match.character, _char => _char.rudolf_state.is_cloned && _char.rudolf_state.master_uid == $.rudolf_state.uid)
+						if (typeof clones == "object" && !(clones instanceof Array))
+							clones = [clones]
 
 						for (c in clones) {
 							var clone = clones[c];
@@ -1163,6 +1165,9 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 
 					// Make clones disappear
 					var clones = util.select_from($.match.character, _char => _char.rudolf_state.is_cloned && _char.rudolf_state.master_uid == $.rudolf_state.uid)
+					if (typeof clones == "object" && !(clones instanceof Array))
+						clones = [clones]
+
 					for (c in clones) {
 						clone = clones[c]
 						clone.effect.timein=0;
@@ -1287,6 +1292,9 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 						if ($.rudolf_state.copied_oid) {
 							$.trans.frame($.frame.D[tag]);
 							var clones = util.select_from($.match.character, char => char.rudolf_state.is_cloned && char.rudolf_state.master_uid == $.rudolf_state.uid)
+							if (typeof clones == "object" && !(clones instanceof Array))
+								clones = [clones]
+
 							for (c in clones) {
 								clones[c].trans.frame($.frame.D[tag]);
 							}
@@ -1315,6 +1323,8 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 
 						// Set redulf_state to clones
 						var clones = util.select_from($.match.character, char => char.rudolf_state.is_cloned && char.rudolf_state.master_uid == $.rudolf_state.uid)
+						if (typeof clones == "object" && !(clones instanceof Array))
+							clones = [clones]
 
 						for (c in clones) {
 							clones[c].rudolf_state.copied_oid = oid
@@ -1913,7 +1923,6 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 	character.prototype.pre_interaction=function()
 	{
 		var $=this;
-		// console.log($.trans.next_frame_D())
 		var ITR_LIST=Futil.make_array($.trans.next_frame_D().itr);
 		for( var i in ITR_LIST)
 		{
