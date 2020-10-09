@@ -1164,6 +1164,11 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 					$.effect.disappear = true
 
 					// Make clones disappear
+
+					// Store Rudolf's original uid if not set
+					if (!$.rudolf_state.uid) {
+						$.rudolf_state.uid = $.uid
+					}
 					var clones = util.select_from($.match.character, _char => _char.rudolf_state.is_cloned && _char.rudolf_state.master_uid == $.rudolf_state.uid)
 					if (typeof clones == "object" && !(clones instanceof Array))
 						clones = [clones]
