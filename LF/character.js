@@ -1306,10 +1306,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 					if( tag==='hit_ja') //Transform
 					{
 						// Get ID of caught character
-						var oid = $.scene.query(null, $, {
-							type:'character',
-							sort:'distance'
-						})[0].id;
+						var oid = $.catching.id
 
 						// Store copied oid
 						$.rudolf_state.copied_oid = oid
