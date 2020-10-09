@@ -135,12 +135,25 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 					//here is where D>A, D>J... etc handled
 					var tag = Global.combo_tag[K];
 
-					if ($.is_copied && tag==='hit_ja') {
+					if ($.rudolf_state.is_copied && tag==='hit_ja') {
 						// Transform back to Rudolf
-						var uid = $.rudolf_uid;
+						var uid = $.rudolf_state.uid;
 						var char = newCharFrom($, 5);
 						$.match.character[uid] = char;
 						char.trans.frame(245);
+
+						// Transform clones
+						var clones = util.select_from($.match.character, _char => _char.rudolf_state.is_cloned && _char.rudolf_state.master_uid == $.rudolf_state.uid)
+
+						for (c in clones) {
+							var clone = clones[c];
+							var cuid = clone.rudolf_state.uid;
+							var cchar = newCharFrom(clone, 5);
+							$.match.character[cuid] = cchar;
+							// TODO: cchar does't enter frame 245
+							cchar.trans.frame(245);
+						}
+
 						return 1;
 					}
 
@@ -969,7 +982,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				$.effect.super=true;
 			break;
 			case 'TU':
-				if ($.health.hp <= 0 && $.cloned) {
+				if ($.health.hp <= 0 && $.rudolf_state.is_cloned) {
 					$.effect.timein=0;
 					$.effect.timeout=30;
 					$.effect.blink=true;
@@ -1149,10 +1162,12 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 					$.effect.disappear = true
 
 					// Make clones disappear
-					for (i in $.clones) {
-						$.clones[i].effect.timein=0;
-						$.clones[i].effect.timeout=99;
-						$.clones[i].effect.disappear = true
+					var clones = util.select_from($.match.character, _char => _char.rudolf_state.is_cloned && _char.rudolf_state.master_uid == $.rudolf_state.uid)
+					for (c in clones) {
+						clone = clones[c]
+						clone.effect.timein=0;
+						clone.effect.timeout=99;
+						clone.effect.disappear = true
 					}
 				break;
 			}
@@ -1211,8 +1226,8 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			var $=this;
 			switch (event) {
 				case 'frame':
-					var ruid = $.rudolf_uid
-					var char = newCharFrom($, $.copied_oid);
+					var ruid = $.rudolf_state.uid
+					var char = newCharFrom($, $.rudolf_state.copied_oid);
 
 					// Assign new char to the same uid
 					$.match.character[ruid] = char;
@@ -1269,8 +1284,12 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				case 'generic_combo':
 					if( tag==='hit_ja') { //Transform
 						// Check if there is already a copied_oid
-						if ($.copied_oid) {
+						if ($.rudolf_state.copied_oid) {
 							$.trans.frame($.frame.D[tag]);
+							var clones = util.select_from($.match.character, char => char.rudolf_state.is_cloned && char.rudolf_state.master_uid == $.rudolf_state.uid)
+							for (c in clones) {
+								clones[c].trans.frame($.frame.D[tag]);
+							}
 						}
 						return 1
 					}
@@ -1278,30 +1297,38 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				case 'state9_combo':
 					if( tag==='hit_ja') //Transform
 					{
+						// Get ID of caught character
+						var oid = $.scene.query(null, $, {
+							type:'character',
+							sort:'distance'
+						})[0].id;
+
+						// Store copied oid
+						$.rudolf_state.copied_oid = oid
+
+						// Store Rudolf's original uid
+						if (!$.rudolf_state.uid) {
+							$.rudolf_state.uid = $.uid
+						}
+
 						$.trans.frame($.frame.D[tag]);
+
+						// Set redulf_state to clones
+						var clones = util.select_from($.match.character, char => char.rudolf_state.is_cloned && char.rudolf_state.master_uid == $.rudolf_state.uid)
+
+						for (c in clones) {
+							clones[c].rudolf_state.copied_oid = oid
+							clones[c].trans.frame($.frame.D[tag])
+						}
+
 						return 1;
 					}
 				break;
 				case 'state9_frame':
-					// Get ID of caught character
-					var oid = $.scene.query(null, $, {
-						type:'character',
-						sort:'distance'
-					})[0].id;
-
-					// Store copied oid
-					$.copied_oid = oid
-
-					// Store Rudolf's original uid
-					if (!$.rudolf_uid) {
-						$.rudolf_uid = $.uid
-					}
-
-					var ruid = $.rudolf_uid // scene.remove() in newCharFrom() will change uid, so we need to get the value first
-					var char = newCharFrom($, oid);
+					var char = newCharFrom($, $.rudolf_state.copied_oid);
 
 					// Assign new char to the same uid
-					$.match.character[ruid] = char;
+					$.match.character[$.rudolf_state.uid] = char;
 					$.trans.frame(999);
 
 					return 1;
@@ -1403,9 +1430,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 		var ps_z = oldChar.ps.z;
 		var hp = oldChar.health.hp;
 		var mp = oldChar.health.mp;
-		var clones = oldChar.clones;
-		var copied_oid = oldChar.copied_oid;
-		var ruid = oldChar.rudolf_uid;
+		var rudolf_state = oldChar.rudolf_state
 		var dir = oldChar.ps.dir;
 
 		var char_config =
@@ -1432,14 +1457,12 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 		char.health.mp = mp;
 
 		// Assign clone and copy properties
-		char.clones = clones;
-		char.rudolf_uid = ruid;
-		char.copied_oid = copied_oid;
+		char.rudolf_state = rudolf_state
 
 		if (oid == 5) { // Transform back to Rudolf
-			char.is_copied = false;
+			char.rudolf_state.is_copied = false;
 		} else {
-			char.is_copied = true;
+			char.rudolf_state.is_copied = true;
 		}
 
 		return char;
@@ -1538,10 +1561,14 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 		{
 			obj: null, //holding weapon
 		};
-		$.clones={} // only for Rudolf's clones
-		$.is_copied=false // only for Rudulf's transform
-		$.rudolf_uid=null // only for Rudulf's transform
-		$.copied_oid=null // only for Rudulf's transform
+		$.rudolf_state = { // only for Rudolf
+			clones_uid: [], // Clones
+			is_cloned: false, // Clones
+			master_uid: null, // Clones
+			is_copied: false, // Transform
+			uid: null, // Transform
+			copied_oid: null // Transform
+		}
 		$.health.bdefend=0;
 		$.health.fall=0;
 		$.health.hp=$.health.hp_full=$.health.hp_bound= $.proper('hp') || GC.default.health.hp_full;
@@ -1965,7 +1992,6 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			攻擊時，會隨機指定其中一個itr的效果。
 			（在範圍有部份重複或是完全重複的部份才有隨機效果。）*/
 
-		// console.log("post_interaction", ITR_LIST)
 		for( var i in ITR_LIST)
 		{
 			var ITR=ITR_LIST[i]; //the itr tag in data
@@ -1998,6 +2024,10 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 						if( hit[t].type!=='character')
 							canhit = false;
 					break;
+					default:
+						if( hit[t].type==='character' && hit[t].team===$.team) //cannot attack characters of same team
+							canhit = false;
+					break;
 					}
 
 					if( ITR.kind===4)
@@ -2007,7 +2037,6 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 							($.itr.attacker.hold && $.itr.attacker.hold.pre && $.itr.attacker.hold.pre.uid === hit[t].uid)) //weapon
 							canhit = false;
 					}
-					// console.log(canhit)
 					// console.log(!$.itr.arest)
 					// console.log(hit[t].hit(ITR,$,{x:$.ps.x,y:$.ps.y,z:$.ps.z},vol))
 					// console.log($.attacked(hit[t].hit(ITR,$,{x:$.ps.x,y:$.ps.y,z:$.ps.z},vol)))

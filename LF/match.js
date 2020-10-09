@@ -295,13 +295,18 @@ Global)
 					var AIcontroller = util.select_from($.data.AI,{id: 3}).data; // dumbass
 					var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
 					obj.health.hp = 10
-					obj.cloned = true // Only for cloned character
 					obj.effect = Object.assign({}, T.parent.effect) // Use deep clone
 					obj.init(T);
 					var uid = $.scene.add(obj);
 					$[obj.type][uid] = obj;
 					$.AIscript[uid] = new AIcontroller(obj,$, config.controller);
-					T.parent.clones[uid] = obj
+
+					// Set rudolf_state
+					obj.rudolf_state.is_cloned = true; // Only for cloned character
+					obj.rudolf_state.copied_oid = T.parent.rudolf_state.copied_oid;
+					obj.rudolf_state.uid = uid;
+					obj.rudolf_state.master_uid = T.parent.rudolf_state.uid ? T.parent.rudolf_state.uid : T.parent.uid;
+					T.parent.rudolf_state.clones_uid.push(obj.uid);
 				} else {
 					var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
 					obj.init(T);
