@@ -291,20 +291,22 @@ Global)
 				};
 
 				if (OBJ.type == "character") { // Rudolf clone
-					var num_of_clone = 2
-					for (i=0; i<num_of_clone; i++) {
-						config.controller = new AI.controller();
-						var AIcontroller = util.select_from($.data.AI,{id: 2}).data; // challenger
-						var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
-						obj.health.hp = 10
-						obj.cloned = true // Only for cloned character
-						obj.effect = Object.assign({}, T.parent.effect) // Use deep clone
-						obj.init(T);
-						var uid = $.scene.add(obj);
-						$[obj.type][uid] = obj;
-						$.AIscript[uid] = new AIcontroller(obj,$, config.controller);
-						T.parent.clones[uid] = obj
-					}
+					config.controller = new AI.controller();
+					var AIcontroller = util.select_from($.data.AI,{id: 3}).data; // dumbass
+					var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
+					obj.health.hp = 10
+					obj.effect = Object.assign({}, T.parent.effect) // Use deep clone
+					obj.init(T);
+					var uid = $.scene.add(obj);
+					$[obj.type][uid] = obj;
+					$.AIscript[uid] = new AIcontroller(obj,$, config.controller);
+
+					// Set rudolf_state
+					obj.rudolf_state.is_cloned = true; // Only for cloned character
+					obj.rudolf_state.copied_oid = T.parent.rudolf_state.copied_oid;
+					obj.rudolf_state.uid = uid;
+					obj.rudolf_state.master_uid = T.parent.rudolf_state.uid ? T.parent.rudolf_state.uid : T.parent.uid;
+					T.parent.rudolf_state.clones_uid.push(obj.uid);
 				} else {
 					var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
 					obj.init(T);
@@ -316,10 +318,16 @@ Global)
 		case 'destroy_object':
 			var obj = T.obj;
 			obj.destroy();
-			var uid = $.scene.remove(obj);
-			delete $[obj.type][uid];
-			if (obj.type == "character") // Rudolf clone
+
+			if (obj.type == "character") { // Rudolf clone
+				var uid = obj.rudolf_state.uid
+				$.scene.remove(obj);
+				delete $[obj.type][uid];
 				delete $.AIscript[uid];
+			} else {
+				var uid = $.scene.remove(obj);
+				delete $[obj.type][uid];
+			}
 		break;
 		}
 	}
@@ -521,8 +529,13 @@ Global)
 					var ch = $.character[$.panel[i].uid];
 					var alive = ch.health.hp>0;
 					var win = teams[ch.team];
+
+					// Read rudolf_state to check the character is Rudolf (oid: 5)
+					var is_rudolf = !!$.character[$.panel[i].uid].rudolf_state.uid
+					var path = is_rudolf ? util.select_from($.data.object, { id: 5 }).data.bmp.small : ch.data.bmp.small
+
 					//[ Icon, Name, Kill, Attack, HP Lost, MP Usage, Picking, Status ]
-					info.push([ch.data.bmp.small, $.panel[i].name, ch.stat.kill, ch.stat.attack, ch.health.hp_lost, ch.health.mp_usage, ch.stat.picking, (win?'Win':'Lose')+' ('+(alive?'Alive':'Dead')+')']);
+					info.push([path, $.panel[i].name, ch.stat.kill, ch.stat.attack, ch.health.hp_lost, ch.health.mp_usage, ch.stat.picking, (win?'Win':'Lose')+' ('+(alive?'Alive':'Dead')+')']);
 				}
 			}
 			$.manager.summary.set_info(info);

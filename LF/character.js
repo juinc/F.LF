@@ -39,7 +39,8 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 						$.injury(dhp);
 					}
 				}
-				$.opoint();
+				if (!$.id_update("generic_frame"))
+					$.opoint();
 			break;
 			case 'TU':
 				if( $.state_update('post_interaction'))
@@ -133,15 +134,42 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				default:
 					//here is where D>A, D>J... etc handled
 					var tag = Global.combo_tag[K];
-					// console.log(tag)
-					// console.log($.frame.D[tag])
+
+					if ($.rudolf_state.is_copied && tag==='hit_ja') {
+						// Transform back to Rudolf
+						var uid = $.rudolf_state.uid;
+						var char = newCharFrom($, 5);
+						$.match.character[uid] = char;
+						char.trans.frame(245);
+
+						// Transform clones
+						var clones = util.select_from($.match.character, _char => _char.rudolf_state.is_cloned && _char.rudolf_state.master_uid == $.rudolf_state.uid)
+						if (typeof clones == "object" && !(clones instanceof Array))
+							clones = [clones]
+
+						for (c in clones) {
+							var clone = clones[c];
+							var cuid = clone.rudolf_state.uid;
+							var cchar = newCharFrom(clone, 5);
+							$.match.character[cuid] = cchar;
+							// TODO: cchar does't enter frame 245
+							cchar.trans.frame(245);
+						}
+
+						return 1;
+					}
+
 					if( tag && $.frame.D[tag])
 					{
+						// Check if the character is transformed from Rudolf
+						
 						if( !$.id_update('generic_combo',K,tag))
 						{
 							$.trans.frame($.frame.D[tag], 11);
 							return 1;
 						}
+					} else {
+						return 1; // For reset combo_buffer
 					}
 				}
 			break;
@@ -606,6 +634,9 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 					case 233: case 234:
 					$.trans.inc_wait(-1);
 					break;
+					case 240: case 298: // Rudolf's transform
+						$.id_update("state9_frame");
+					break;
 				}
 				if( $.catching && $.frame.D.cpoint)
 					$.catching.caught_b(
@@ -614,6 +645,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 						$.ps.dir,
 						$.dirv()
 					);
+				
 			break;
 
 			case 'TU':
@@ -705,6 +737,17 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 					{
 						$.trans.frame($.frame.D.cpoint.jaction, 10);
 						return 1;
+					}
+				break;
+				default:
+					var tag = Global.combo_tag[K];
+					if( tag && $.frame.D[tag])
+					{
+						if (!$.id_update("state9_combo", K, tag))
+						{
+							// Do nothing
+							return 1
+						}
 					}
 				break;
 			}
@@ -941,7 +984,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				$.effect.super=true;
 			break;
 			case 'TU':
-				if ($.health.hp <= 0 && $.cloned) {
+				if ($.health.hp <= 0 && $.rudolf_state.is_cloned) {
 					$.effect.timein=0;
 					$.effect.timeout=30;
 					$.effect.blink=true;
@@ -979,6 +1022,9 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				case 54: //sky_lgt_wp_thw
 					if( $.frame.D.next===999 && $.ps.y<0)
 						$.trans.set_next(212); //back to jump
+				break;
+				case 271: // Rudolf's clone
+					$.id_update('state15_frame', K);
 				break;
 				}
 			break;
@@ -1109,17 +1155,26 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 		'1280': function(event, K) // Rudolf disappear
 		{
 			var $=this;
-			$.trans.set_next(999);
+			switch (event) {
+				case 'frame':
+					$.trans.set_next(999);
 
-			$.effect.timein=0;
-			$.effect.timeout=99;
-			$.effect.disappear = true
+					$.effect.timein=0;
+					$.effect.timeout=99;
+					$.effect.disappear = true
 
-			// Make clones disappear
-			for (i in $.clones) {
-				$.clones[i].effect.timein=0;
-				$.clones[i].effect.timeout=99;
-				$.clones[i].effect.disappear = true
+					// Make clones disappear
+					var clones = util.select_from($.match.character, _char => _char.rudolf_state.is_cloned && _char.rudolf_state.master_uid == $.rudolf_state.uid)
+					if (typeof clones == "object" && !(clones instanceof Array))
+						clones = [clones]
+
+					for (c in clones) {
+						clone = clones[c]
+						clone.effect.timein=0;
+						clone.effect.timeout=99;
+						clone.effect.disappear = true
+					}
+				break;
 			}
 		},
 		'9995': function(event, K)
@@ -1170,7 +1225,21 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				}, $);
 				$.effect.super = true;
 			break;
-		}}
+		}},
+		'501': function(event, K) //Rudolf transform
+		{
+			var $=this;
+			switch (event) {
+				case 'frame':
+					var ruid = $.rudolf_state.uid
+					var char = newCharFrom($, $.rudolf_state.copied_oid);
+
+					// Assign new char to the same uid
+					$.match.character[ruid] = char;
+					$.trans.frame(999);
+				break;
+			}
+		}
 	};
 
 	var idupdates = //nasty fix (es)
@@ -1204,6 +1273,80 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 						$.switch_dir('left');
 				}
 			break;
+			}
+		},
+		'5': function(event,K,tag) //Rudolf
+		{
+			var $=this;
+			switch (event)
+			{
+				case 'generic_frame':
+					if ($.frame.D.state == 15 && $.frame.D.name == "+man") { // Rudolf's clone
+						// Do nothing
+						return 1
+					}
+				break;
+				case 'generic_combo':
+					if( tag==='hit_ja') { //Transform
+						// Check if there is already a copied_oid
+						if ($.rudolf_state.copied_oid) {
+							$.trans.frame($.frame.D[tag]);
+							var clones = util.select_from($.match.character, char => char.rudolf_state.is_cloned && char.rudolf_state.master_uid == $.rudolf_state.uid)
+							if (typeof clones == "object" && !(clones instanceof Array))
+								clones = [clones]
+
+							for (c in clones) {
+								clones[c].trans.frame($.frame.D[tag]);
+							}
+						}
+						return 1
+					}
+				break;
+				case 'state9_combo':
+					if( tag==='hit_ja') //Transform
+					{
+						// Get ID of caught character
+						var oid = $.catching.id
+
+						// Store copied oid
+						$.rudolf_state.copied_oid = oid
+
+						// Store Rudolf's original uid
+						if (!$.rudolf_state.uid) {
+							$.rudolf_state.uid = $.uid
+						}
+
+						$.trans.frame($.frame.D[tag]);
+
+						// Set redulf_state to clones
+						var clones = util.select_from($.match.character, char => char.rudolf_state.is_cloned && char.rudolf_state.master_uid == $.rudolf_state.uid)
+						if (typeof clones == "object" && !(clones instanceof Array))
+							clones = [clones]
+
+						for (c in clones) {
+							clones[c].rudolf_state.copied_oid = oid
+							clones[c].trans.frame($.frame.D[tag])
+						}
+
+						return 1;
+					}
+				break;
+				case 'state9_frame':
+					var char = newCharFrom($, $.rudolf_state.copied_oid);
+
+					// Assign new char to the same uid
+					$.match.character[$.rudolf_state.uid] = char;
+					$.trans.frame(999);
+
+					return 1;
+				break;
+				case 'state15_frame': // Clone
+					var num_of_clone = 2;
+					for (var i=0; i<num_of_clone; i++) {
+						$.opoint()
+					}
+					return 1;
+				break;
 			}
 		},
 		'6': function(event,K,tag) //Louis
@@ -1286,6 +1429,51 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 		'15':false,
 		'16':false
 	};
+
+	// Rudolf's Transform Util
+	function newCharFrom(oldChar, oid) {
+		var ps_x = oldChar.ps.x;
+		var ps_y = oldChar.ps.y;
+		var ps_z = oldChar.ps.z;
+		var hp = oldChar.health.hp;
+		var mp = oldChar.health.mp;
+		var rudolf_state = oldChar.rudolf_state
+		var dir = oldChar.ps.dir;
+
+		var char_config =
+		{
+			match: oldChar.match,
+			controller: oldChar.con,
+			team: oldChar.team
+		}
+
+		var player_obj = util.select_from(oldChar.match.data.object,{ id: oid });
+		var pdata = player_obj.data;
+
+		// Remove old char sprite
+		oldChar.scene.remove(oldChar);
+		oldChar.sp.sp.remove();
+		oldChar.shadow.remove();
+
+		// Create new char
+		var char = new character(char_config, pdata, oid);
+		char.set_pos( ps_x, ps_y, ps_z);
+		char.switch_dir(dir==='right'?'right':'left');
+		oldChar.scene.add(char);
+		char.health.hp = hp;
+		char.health.mp = mp;
+
+		// Assign clone and copy properties
+		char.rudolf_state = rudolf_state
+
+		if (oid == 5) { // Transform back to Rudolf
+			char.rudolf_state.is_copied = false;
+		} else {
+			char.rudolf_state.is_copied = true;
+		}
+
+		return char;
+	}
 
 	//inherit livingobject
 	function character(config,data,thisID)
@@ -1380,7 +1568,14 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 		{
 			obj: null, //holding weapon
 		};
-		$.clones={} // only for Rudolf's clones
+		$.rudolf_state = { // only for Rudolf
+			clones_uid: [], // Clones
+			is_cloned: false, // Clones
+			master_uid: null, // Clones
+			is_copied: false, // Transform
+			uid: null, // Transform
+			copied_oid: null // Transform
+		}
 		$.health.bdefend=0;
 		$.health.fall=0;
 		$.health.hp=$.health.hp_full=$.health.hp_bound= $.proper('hp') || GC.default.health.hp_full;
@@ -1465,7 +1660,9 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 		else
 			if( res1 || res2 || //do not store if returned true
 				K==='left' || K==='right' || K==='up' || K==='down') //dir combos are not persistent
-				$.combo_buffer.combo = null;
+				{
+					$.combo_buffer.combo = null;
+				}
 	}
 
 	/** @protocol caller hits callee
@@ -1801,7 +1998,6 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			攻擊時，會隨機指定其中一個itr的效果。
 			（在範圍有部份重複或是完全重複的部份才有隨機效果。）*/
 
-		// console.log("post_interaction", ITR_LIST)
 		for( var i in ITR_LIST)
 		{
 			var ITR=ITR_LIST[i]; //the itr tag in data
@@ -1810,8 +2006,6 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			// vol.zwidth = 0;
 			var hit= $.scene.query(vol, $, {tag:'body'});
 
-			// console.log("ITR: ", ITR)
-			// console.log("hit: ", hit)
 			switch (ITR.kind)
 			{
 			case 0: //normal attack
@@ -1836,6 +2030,10 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 						if( hit[t].type!=='character')
 							canhit = false;
 					break;
+					default:
+						if( hit[t].type==='character' && hit[t].team===$.team) //cannot attack characters of same team
+							canhit = false;
+					break;
 					}
 
 					if( ITR.kind===4)
@@ -1845,10 +2043,10 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 							($.itr.attacker.hold && $.itr.attacker.hold.pre && $.itr.attacker.hold.pre.uid === hit[t].uid)) //weapon
 							canhit = false;
 					}
-					// console.log(canhit)
 					// console.log(!$.itr.arest)
 					// console.log(hit[t].hit(ITR,$,{x:$.ps.x,y:$.ps.y,z:$.ps.z},vol))
 					// console.log($.attacked(hit[t].hit(ITR,$,{x:$.ps.x,y:$.ps.y,z:$.ps.z},vol)))
+
 					if( canhit)
 					if( !$.itr.arest)
 					if( $.attacked(hit[t].hit(ITR,$,{x:$.ps.x,y:$.ps.y,z:$.ps.z},vol)))
