@@ -1281,7 +1281,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			switch (event)
 			{
 				case 'generic_frame':
-					if ($.frame.D.state == 15) { // Rudolf's clone
+					if ($.frame.D.state == 15 && $.frame.D.name == "+man") { // Rudolf's clone
 						// Do nothing
 						return 1
 					}
