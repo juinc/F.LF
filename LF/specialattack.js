@@ -98,7 +98,8 @@ var GC=Global.gameplay;
 						var bat_opoint = { kind: 1, x: 40, y: 29, action: 0, dvx: 0, dvy: 0, oid: 225, facing: 0 };
 						var num_of_bats = 3; // TODO: Add 1 bat per 2 players when there is more then 3 players
 						for (var i=0; i<num_of_bats; i++) {
-							$.match.create_object(bat_opoint, $);
+							//TODO: Make each bat go different direction
+							$.match.create_object(bat_opoint, $.parent);
 						}
 					}
 				}
@@ -310,6 +311,7 @@ var GC=Global.gameplay;
 					ITR[j].kind===16) //whirlwind
 				{
 					if( !(hit[k].type==='character' && hit[k].team===$.team)) //cannot attack characters of same team
+					if( !(hit[k].type==='specialattack' && hit[k].team===$.team)) //cannot attack specialattacks of same team
 					if( !(ITR[j].kind===0 && hit[k].type!=='character' && hit[k].team===$.team && hit[k].ps.dir===$.ps.dir)) //kind:0 can only attack objects of same team if head on collide
 					if( !$.itr.arest)
 					if( $.attacked(hit[k].hit(ITR[j],$,{x:$.ps.x,y:$.ps.y,z:$.ps.z},vol)))
