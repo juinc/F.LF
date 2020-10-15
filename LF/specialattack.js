@@ -71,7 +71,8 @@ var GC=Global.gameplay;
 				/*	<zort> chasing ball seeks for 72 frames, not counting just after (quantify?) it's launched or deflected. Internally, LF2 keeps a variable keeping track of how long the ball has left to seek, which starts at 500 and decreases by 7 every frame until it reaches 0. while seeking, its maximum x speed is 14, and its x acceleration is 0.7; it can climb or descend, by 1 px/frame; and its maximum z speed is 2.2, with z acceleration .4. when out of seeking juice, its speed is 17. the -7 in the chasing algorithm comes from hit_a: 7.
 				*/
 				if( $.frame.D.hit_Fa===1 ||
-					$.frame.D.hit_Fa===2)
+					$.frame.D.hit_Fa===2 ||
+					$.frame.D.hit_Fa===12)
 				if( $.health.hp>0)
 				{
 					$.chase_target();
@@ -90,6 +91,17 @@ var GC=Global.gameplay;
 				{
 					$.ps.vx = ($.ps.vx>0?1:-1) * 17;
 					$.ps.vz = 0;
+				}
+				if( $.frame.D.hit_Fa===8) {
+					if ($.trans.wait() === 0) {
+						// Create bats
+						var bat_opoint = { kind: 1, x: 40, y: 29, action: 0, dvx: 0, dvy: 0, oid: 225, facing: 0 };
+						var num_of_bats = 3; // TODO: Add 1 bat per 2 players when there is more then 3 players
+						for (var i=0; i<num_of_bats; i++) {
+							//TODO: Make each bat go different direction
+							$.match.create_object(bat_opoint, $.parent);
+						}
+					}
 				}
 			break;
 		}},
@@ -299,6 +311,7 @@ var GC=Global.gameplay;
 					ITR[j].kind===16) //whirlwind
 				{
 					if( !(hit[k].type==='character' && hit[k].team===$.team)) //cannot attack characters of same team
+					if( !(hit[k].type==='specialattack' && hit[k].team===$.team)) //cannot attack specialattacks of same team
 					if( !(ITR[j].kind===0 && hit[k].type!=='character' && hit[k].team===$.team && hit[k].ps.dir===$.ps.dir)) //kind:0 can only attack objects of same team if head on collide
 					if( !$.itr.arest)
 					if( $.attacked(hit[k].hit(ITR[j],$,{x:$.ps.x,y:$.ps.y,z:$.ps.z},vol)))
