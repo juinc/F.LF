@@ -72,7 +72,8 @@ var GC=Global.gameplay;
 				*/
 				if( $.frame.D.hit_Fa===1 ||
 					$.frame.D.hit_Fa===2 ||
-					$.frame.D.hit_Fa===12)
+					$.frame.D.hit_Fa===12 ||
+					$.frame.D.hit_Fa===7 )
 				if( $.health.hp>0)
 				{
 					$.chase_target();
@@ -84,17 +85,24 @@ var GC=Global.gameplay;
 						$.ps.vx += (dx>=0?1:-1) * 0.7;
 					if( $.ps.vz*(dz>=0?1:-1) < 2.2)
 						$.ps.vz += (dz>=0?1:-1) * 0.4;
-					//$.ps.vy = (dy>=0?1:-1) * 1.0;
+					if ($.frame.D.hit_Fa===7) // Set vy only for Firzen disaster
+						$.ps.vy += (dy>=0?1:-1) * 1.0;
 					$.switch_dir($.ps.vx>=0?'right':'left');
+				}
+				if ($.ps.y == 0 && $.frame.D.name == "flying") { // Only for Firzen disaster, hit ground
+					$.ps.vx = 0
+					$.ps.vy = 0
+					$.ps.vz = 0
+					$.trans.frame(60)
 				}
 				if( $.frame.D.hit_Fa===10)
 				{
 					$.ps.vx = ($.ps.vx>0?1:-1) * 17;
 					$.ps.vz = 0;
 				}
+				// Bat: Create bats
 				if( $.frame.D.hit_Fa===8) {
 					if ($.trans.wait() === 0) {
-						// Create bats
 						var bat_opoint = { kind: 1, x: 40, y: 29, action: 0, dvx: 0, dvy: 0, oid: 225, facing: 0 };
 						var num_of_bats = 3; // TODO: Add 1 bat per 2 players when there is more then 3 players
 						for (var i=0; i<num_of_bats; i++) {
@@ -103,6 +111,40 @@ var GC=Global.gameplay;
 						}
 					}
 				}
+				// Firzen: Create disaster
+				if( $.frame.D.hit_Fa===9) {
+					if ($.trans.wait() === 0) {
+						var num_of_balls = 4; // TODO: Add 1 ball per 2 players when there is more then 3 players
+						var fire_count = 0
+						var ice_count = 0;
+						for (var i=0; i<num_of_balls; i++) {
+							// Make each ball go different direction
+							var opoint = { kind: 1, x: 40, y: -100, action: 0, dvx: 0, dvy: 0, oid: 0, facing: 0 }; // Need to assgin dex, dvy and oid
+							opoint.dvy = -(i+1)*2;
+							if (i%2 == 0) {
+								opoint.oid = 221; // Fire
+								if (fire_count == 1) {
+									opoint.dvx = 4+i
+									fire_count = 0
+								} else {
+									opoint.dvx = -4-i
+									fire_count += 1;
+								}
+							} else {
+								opoint.oid = 222; // Ice
+								if (ice_count == 1) {
+									opoint.dvx = 4+i
+									ice_count = 0
+								} else {
+									opoint.dvx = -4-i
+									ice_count += 1;
+								}
+							}
+							$.match.create_object(opoint, $.parent);
+						}
+					}
+				}
+
 			break;
 		}},
 

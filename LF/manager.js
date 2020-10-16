@@ -1661,7 +1661,7 @@ function Manager(package, buildinfo)
 					use:true,
 					name:'Player1',
 					type:'human',
-					selected:3, // Bat
+					selected:2, // Bat
 					// selected: 12, // Dennis
 					team:1
 				},
