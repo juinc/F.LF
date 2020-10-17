@@ -187,6 +187,49 @@ var GC=Global.gameplay;
 						$.match.create_object(disaster_opoint, $);
 					}
 				}
+				if( $.frame.D.hit_Fa===13) {
+					if ($.trans.wait() === 0) {
+						// Create julian ball
+						var ball_opoint = {
+							kind: 1, x: 60, y: 50, action: 0, dvx: 15, dvy: 0, oid: 228, facing: 0
+						};
+						$.match.create_object(ball_opoint, $.parent);
+					}
+				}
+				if( $.frame.D.hit_Fa===14) {
+					if ($.turned) {
+						$.chase_target();
+						var T = $.chasing.target;
+						var dx = T.ps.x - $.ps.x,
+							dy = T.ps.y - $.ps.y,
+							dz = T.ps.z - $.ps.z;
+						if ($.ps.vx === 0)
+							$.ps.vx = 14;
+						if( $.ps.vx*($.turned>=0?1:-1) < 14)
+							$.ps.vx += ($.turned>=0?1:-1) * 3;
+						if( $.ps.vz*(dz>=0?1:-1) < 2.2)
+							$.ps.vz += (dz>=0?1:-1) * 0.4;
+						$.switch_dir($.ps.vx>=0?'right':'left');
+					} else {
+						$.chase_target();
+						var T = $.chasing.target;
+						var dx = T.ps.x - $.ps.x,
+							dy = T.ps.y - $.ps.y,
+							dz = T.ps.z - $.ps.z;
+						if( $.ps.vx*(dx>=0?1:-1) < 14)
+							$.ps.vx += (dx>=0?1:-1) * 0.7;
+						if( $.ps.vz*(dz>=0?1:-1) < 2.2)
+							$.ps.vz += (dz>=0?1:-1) * 0.4;
+						//$.ps.vy = (dy>=0?1:-1) * 1.0;
+						$.switch_dir($.ps.vx>=0?'right':'left');
+						if (($.pvx && ($.pvx > 0 && $.ps.vx <= 0)) ||
+							($.pvx && ($.pvx < 0 && $.ps.vx >= 0)) ||
+							$.ps.vx*(dx>=0?1:-1) > 14) {
+							$.turned = $.ps.vx;
+						}
+						$.pvx = $.ps.vx;
+					}
+				}
 			break;
 		}},
 

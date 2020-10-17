@@ -461,6 +461,16 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 		{	var $=this;
 			switch (event) {
 
+			case 'state_entry':
+				if( (9<=$.frame.PN && $.frame.PN<=11) || //if previous is running
+					($.frame.PN===215)) //or crouch
+				{
+					$.ps.vx= $.dirh() * ($.data.bmp.dash_distance-1) * ($.frame.N===213?1:-1);
+					$.ps.vz= $.dirv() * ($.data.bmp.dash_distancez-1);
+					$.ps.vy= $.data.bmp.dash_height;
+				}
+			break;
+
 			case 'frame':
 				$.statemem.frameTU=true;
 				if( $.frame.PN===80 || $.frame.PN===81) //after jump attack
@@ -488,7 +498,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				if( (K==='att' || $.con.state.att) && !$.statemem.attlock)
 				{
 					// a transition to jump_attack can only happen after entering frame 212
-					if( $.frame.N===212)
+					if( $.frame.N===212 || $.frame.N===213)
 					{
 						if( $.hold.obj)
 						{
