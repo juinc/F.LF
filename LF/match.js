@@ -291,22 +291,31 @@ Global)
 				};
 
 				if (OBJ.type == "character") { // Rudolf clone
-					config.controller = new AI.controller();
-					var AIcontroller = util.select_from($.data.AI,{id: 3}).data; // dumbass
-					var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
-					obj.health.hp = 10
-					obj.effect = Object.assign({}, T.parent.effect) // Use deep clone
-					obj.init(T);
-					var uid = $.scene.add(obj);
-					$[obj.type][uid] = obj;
-					$.AIscript[uid] = new AIcontroller(obj,$, config.controller);
-
-					// Set rudolf_state
-					obj.rudolf_state.is_cloned = true; // Only for cloned character
-					obj.rudolf_state.copied_oid = T.parent.rudolf_state.copied_oid;
-					obj.rudolf_state.uid = uid;
-					obj.rudolf_state.master_uid = T.parent.rudolf_state.uid ? T.parent.rudolf_state.uid : T.parent.uid;
-					T.parent.rudolf_state.clones_uid.push(obj.uid);
+					if (T.opoint.oid === 5) {
+						config.controller = new AI.controller();
+						var AIcontroller = util.select_from($.data.AI,{id: 3}).data; // dumbass
+						var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
+						obj.health.hp = 10
+						obj.effect = Object.assign({}, T.parent.effect) // Use deep clone
+						obj.init(T);
+						var uid = $.scene.add(obj);
+						$[obj.type][uid] = obj;
+						$.AIscript[uid] = new AIcontroller(obj,$, config.controller);
+						// Set rudolf_state
+						obj.rudolf_state.is_cloned = true; // Only for cloned character
+						obj.rudolf_state.copied_oid = T.parent.rudolf_state.copied_oid;
+						obj.rudolf_state.uid = uid;
+						obj.rudolf_state.master_uid = T.parent.rudolf_state.uid ? T.parent.rudolf_state.uid : T.parent.uid;
+						T.parent.rudolf_state.clones_uid.push(obj.uid);
+					} else if (T.opoint.oid === 52) {
+						config.controller = new AI.controller();
+						var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
+						obj.set_pos(T.parent.ps.x, T.parent.ps.y, T.parent.ps.z);
+						obj.switch_dir(T.parent.ps.dir==='right'?'right':'left');
+						var uid = $.scene.add(obj);
+						$[obj.type][uid] = obj;
+						obj.trans.frame(T.opoint.action, 10);
+					}
 				} else {
 					var obj = new factory[OBJ.type](config, OBJ.data, T.opoint.oid);
 					obj.init(T);

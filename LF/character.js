@@ -461,6 +461,16 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 		{	var $=this;
 			switch (event) {
 
+			case 'state_entry':
+				if( (9<=$.frame.PN && $.frame.PN<=11) || //if previous is running
+					($.frame.PN===215)) //or crouch
+				{
+					$.ps.vx= $.dirh() * ($.data.bmp.dash_distance-1) * ($.frame.N===213?1:-1);
+					$.ps.vz= $.dirv() * ($.data.bmp.dash_distancez-1);
+					$.ps.vy= $.data.bmp.dash_height;
+				}
+			break;
+
 			case 'frame':
 				$.statemem.frameTU=true;
 				if( $.frame.PN===80 || $.frame.PN===81) //after jump attack
@@ -488,7 +498,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				if( (K==='att' || $.con.state.att) && !$.statemem.attlock)
 				{
 					// a transition to jump_attack can only happen after entering frame 212
-					if( $.frame.N===212)
+					if( $.frame.N===212 || $.frame.N===213)
 					{
 						if( $.hold.obj)
 						{
@@ -1821,7 +1831,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			$.health.fall=0;
 			$.ps.vy=0;
 			var front = (attps.x > $.ps.x)===($.ps.dir==='right'); //attacked in front
-				 if( front && ITR.dvx < 0 && ITR.bdefend>=60)
+			if( front && ITR.dvx < 0 && ITR.bdefend>=60)
 				$.trans.frame(186, 21);
 			else if( front)
 				$.trans.frame(180, 21);
@@ -1853,10 +1863,14 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				}
 				$.visualeffect_create(effectnum, rect, (attps.x < $.ps.x), ($.health.fall>0?0:1), true);
 			break;
+			case 23:
+				$.drop_weapon(ef_dvx, ef_dvy);
+				$.health.fall += ITR.fall;
+				$.trans.frame(180, 38);
+			break;
 			case 2: //fire
 			case 21:
 			case 22:
-			case 23:
 				$.drop_weapon(ef_dvx, ef_dvy);
 			case 20:
 				$.trans.frame(203, 36);
