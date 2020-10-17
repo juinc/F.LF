@@ -1831,7 +1831,7 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 			$.health.fall=0;
 			$.ps.vy=0;
 			var front = (attps.x > $.ps.x)===($.ps.dir==='right'); //attacked in front
-				 if( front && ITR.dvx < 0 && ITR.bdefend>=60)
+			if( front && ITR.dvx < 0 && ITR.bdefend>=60)
 				$.trans.frame(186, 21);
 			else if( front)
 				$.trans.frame(180, 21);
@@ -1863,10 +1863,14 @@ function(livingobject, Global, Fcombodec, Futil, util, AI)
 				}
 				$.visualeffect_create(effectnum, rect, (attps.x < $.ps.x), ($.health.fall>0?0:1), true);
 			break;
+			case 23:
+				$.drop_weapon(ef_dvx, ef_dvy);
+				$.health.fall += ITR.fall;
+				$.trans.frame(180, 38);
+			break;
 			case 2: //fire
 			case 21:
 			case 22:
-			case 23:
 				$.drop_weapon(ef_dvx, ef_dvy);
 			case 20:
 				$.trans.frame(203, 36);
