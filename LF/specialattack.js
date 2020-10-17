@@ -89,7 +89,7 @@ var GC=Global.gameplay;
 						$.ps.vy += (dy>=0?1:-1) * 1.0;
 					$.switch_dir($.ps.vx>=0?'right':'left');
 				}
-				if ($.ps.y == 0 && $.frame.D.name == "flying") { // Only for Firzen disaster, hit ground
+				if ($.frame.D.hit_Fa===7 && $.ps.y == 0 && $.frame.D.name == "flying") { // Only for Firzen disaster, hit ground
 					$.ps.vx = 0
 					$.ps.vy = 0
 					$.ps.vz = 0
@@ -103,11 +103,11 @@ var GC=Global.gameplay;
 				// Bat: Create bats
 				if( $.frame.D.hit_Fa===8) {
 					if ($.trans.wait() === 0) {
-						var bat_opoint = { kind: 1, x: 40, y: 29, action: 0, dvx: 0, dvy: 0, oid: 225, facing: 0 };
 						var num_of_bats = 3; // TODO: Add 1 bat per 2 players when there is more then 3 players
 						for (var i=0; i<num_of_bats; i++) {
-							//TODO: Make each bat go different direction
-							$.match.create_object(bat_opoint, $.parent);
+							var bat_opoint = { kind: 1, x: 40, y: 29, action: 0, dvx: 0, dvy: 0, oid: 225, facing: 0 };
+							bat_opoint.dvx = (i%2==0)?(i*2):(-i*2);
+							$.match.create_object(bat_opoint, $);
 						}
 					}
 				}
@@ -119,7 +119,8 @@ var GC=Global.gameplay;
 						var ice_count = 0;
 						for (var i=0; i<num_of_balls; i++) {
 							// Make each ball go different direction
-							var opoint = { kind: 1, x: 40, y: -100, action: 0, dvx: 0, dvy: 0, oid: 0, facing: 0 }; // Need to assgin dex, dvy and oid
+							var opoint = { kind: 1, x: 40, y: 0, action: 0, dvx: 0, dvy: 0, oid: 0, facing: 0 }; // Need to assgin dex, dvy and oid
+							// TODO: Add taling stars
 							opoint.dvy = -(i+1)*2;
 							if (i%2 == 0) {
 								opoint.oid = 221; // Fire
@@ -140,11 +141,52 @@ var GC=Global.gameplay;
 									ice_count += 1;
 								}
 							}
-							$.match.create_object(opoint, $.parent);
+							$.match.create_object(opoint, $);
 						}
 					}
 				}
+				// Firzen: Create valcano
+				if( $.frame.D.hit_Fa===11) {
+					if ($.trans.wait() === 10) { // Use 10 instead of 1 to reduce the time difference
+						// Explosion
+						var exp_opoint = { kind: 1, x: 48, y: 81, action: 109, dvx: 0, dvy: 0, oid: 211, facing: 1 };
+						$.match.create_object(exp_opoint, $);
 
+						// Ground fire
+						var num_of_fire = 5;
+						for (var i=0; i<num_of_fire; i++) {
+							var fire_opoint = { kind: 1, x: 0, y: 81, action: 50, dvx: 0, dvy: 0, oid: 211, facing: 1 };
+							fire_opoint.x += i*15;
+
+							$.match.create_object(fire_opoint, $);
+						}
+
+						// Ice Column
+						var ice1_opoint = { kind: 1, x: 135, y: 77, action: 100, dvx: 0, dvy: 0, oid: 212, facing: 0 };
+						var ice2_opoint = { kind: 1, x: -45, y: 77, action: 100, dvx: 0, dvy: 0, oid: 212, facing: 1 }; // Face to backside
+
+						var create_ice = function(opoint, z_offset, dir) {
+							var mock = Object.assign({}, $);
+							mock.ps = Object.assign({}, $.ps);
+							mock.dirv = () => { return dir };
+							mock.attacked = $.attacked;
+							mock.stat = $.stat;
+							mock.ps.z += z_offset;
+							$.match.create_object(opoint, mock);
+						}
+
+						create_ice(ice1_opoint, 0, 0);
+						create_ice(ice1_opoint, 50, 1);
+						create_ice(ice1_opoint, -50, -1);
+						create_ice(ice2_opoint, 0, 0);
+						create_ice(ice2_opoint, 50, 1);
+						create_ice(ice2_opoint, -50, -1);
+
+						// Disaster
+						var disaster_opoint = { kind: 1, x: 0, y: -100, action: 81, dvx: 0, dvy: 0, oid: 221, facing: 1 }
+						$.match.create_object(disaster_opoint, $);
+					}
+				}
 			break;
 		}},
 

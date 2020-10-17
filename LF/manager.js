@@ -1662,7 +1662,7 @@ function Manager(package, buildinfo)
 					name:'Player1',
 					type:'human',
 					selected:2, // Bat
-					// selected: 12, // Dennis
+					// selected: 11, // Dennis
 					team:1
 				},
 				{
